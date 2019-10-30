@@ -22812,7 +22812,7 @@ const path = __importStar(__webpack_require__(622));
 const os = __importStar(__webpack_require__(87));
 const request_promise_1 = __webpack_require__(99);
 const github = __webpack_require__(861);
-const stack = core.getInput("stack", { required: true });
+const stack = core.getInput("stack");
 const args = core.getInput("args", { required: true });
 const root = core.getInput("root");
 if (root) {
@@ -22840,7 +22840,9 @@ switch (mode) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         yield downloadPulumi();
-        yield exec_1.exec("pulumi", ["stack", "select", stack]);
+        if (stack) {
+            yield exec_1.exec("pulumi", ["stack", "select", stack]);
+        }
         const gcloudFile = `${process.env.HOME}/gcloud.json`;
         fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
         yield exec_1.exec(`gcloud auth activate-service-account --key-file=${gcloudFile}`);
@@ -22925,7 +22927,9 @@ function downloadPulumi() {
 }
 function getLatestVersion() {
     return __awaiter(this, void 0, void 0, function* () {
-        const resp = yield request_promise_1.get("https://pulumi.com/latest-version", { followAllRedirects: true });
+        const resp = yield request_promise_1.get("https://pulumi.com/latest-version", {
+            followAllRedirects: true
+        });
         return resp;
     });
 }

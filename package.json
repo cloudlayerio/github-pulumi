@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run-script pack",
     "pack": "ncc build dist/index.js"
   },
   "dependencies": {

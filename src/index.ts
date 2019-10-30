@@ -9,10 +9,9 @@ import * as path from "path";
 import * as os from "os";
 import { get } from "request-promise";
 
-
 const github = require("@actions/github");
 
-const stack = core.getInput("stack", { required: true });
+const stack = core.getInput("stack");
 const args = core.getInput("args", { required: true });
 const root = core.getInput("root");
 if (root) {
@@ -48,11 +47,14 @@ switch (mode) {
 
 async function run() {
   await downloadPulumi();
-  await exec("pulumi", ["stack", "select", stack]);
+
+  if (stack) {
+    await exec("pulumi", ["stack", "select", stack]);
+  }
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
   fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-  await exec(`gcloud auth activate-service-account --key-file=${gcloudFile}`)
+  await exec(`gcloud auth activate-service-account --key-file=${gcloudFile}`);
 
   if (fs.existsSync("package.json")) {
     if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
@@ -158,10 +160,11 @@ async function downloadPulumi() {
   core.addPath(cachedToolpath);
 }
 
-async function getLatestVersion() : Promise<string> {
-    
-  const resp = await get("https://pulumi.com/latest-version", { followAllRedirects: true});
-  
+async function getLatestVersion(): Promise<string> {
+  const resp = await get("https://pulumi.com/latest-version", {
+    followAllRedirects: true
+  });
+
   return resp;
 }
 
