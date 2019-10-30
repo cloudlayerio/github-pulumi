@@ -47,7 +47,6 @@ switch (mode) {
 
 async function run() {
   await downloadPulumi();
-
   if (!stack) {
     core.info("Stack not defined, using ci.json")
     const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
