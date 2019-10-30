@@ -6241,6 +6241,7 @@ function getDownloadURL(version) {
 function downloadPulumi() {
     return __awaiter(this, void 0, void 0, function* () {
         const version = yield getLatestVersion();
+        core.info(version);
         let cachedToolpath = toolCache.find("pulumi", version);
         if (!cachedToolpath) {
             let downloadPath;
@@ -6261,7 +6262,11 @@ function getLatestVersion() {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
             hostname: "pulumi.com",
-            path: "/latest-version"
+            path: "/latest-version",
+            headers: {
+                Accept: "text/plain",
+                "User-Agent": "github-pulumi"
+            }
         };
         return new Promise((resolve, reject) => {
             const req = https.get(options, res => {
