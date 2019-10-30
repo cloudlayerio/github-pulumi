@@ -22813,6 +22813,7 @@ const os = __importStar(__webpack_require__(87));
 const request_promise_1 = __webpack_require__(99);
 const github = __webpack_require__(861);
 let stack = core.getInput("stack");
+let branch = "";
 const args = core.getInput("args", { required: true });
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
@@ -22836,17 +22837,21 @@ switch (mode) {
             core.info("Skipping Pulumi action altogether...");
             process.exit(0);
         }
+        branch = github.context.pull_request.base.ref;
+        break;
+    default:
+        branch = github.context.ref;
         break;
 }
+branch = branch.replace(/refs\/heads\//, "");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         yield downloadPulumi();
         if (!stack) {
             core.info("Stack not defined, using ci.json");
             const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, 'utf8');
-            const branchName = github.context.ref.replace(/refs\/heads\//, "") || 'master';
-            core.info(`Using branch: ${branchName}`);
-            stack = JSON.parse(ci)[branchName];
+            core.info(`Using branch: ${branch}`);
+            stack = JSON.parse(ci)[branch];
         }
         yield exec_1.exec("pulumi", ["stack", "select", stack]);
         const gcloudFile = `${process.env.HOME}/gcloud.json`;

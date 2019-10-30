@@ -12,6 +12,8 @@ import { get } from "request-promise";
 const github = require("@actions/github");
 
 let stack = core.getInput("stack");
+let branch = "";
+
 const args = core.getInput("args", { required: true });
 const root = process.cwd();
 
@@ -44,8 +46,14 @@ switch (mode) {
       core.info("Skipping Pulumi action altogether...");
       process.exit(0);
     }
+    branch = github.context.pull_request.base.ref;
+    break;
+  default:
+    branch = github.context.ref;
     break;
 }
+
+branch = branch.replace(/refs\/heads\//, "");
 
 async function run() {
   await downloadPulumi();
@@ -53,9 +61,9 @@ async function run() {
   if (!stack) {
     core.info("Stack not defined, using ci.json")
     const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, 'utf8');
-    const branchName = github.context.ref.replace(/refs\/heads\//, "") || 'master';
-    core.info(`Using branch: ${branchName}`);
-    stack = JSON.parse(ci)[branchName]
+
+    core.info(`Using branch: ${branch}`);
+    stack = JSON.parse(ci)[branch]
   }
 
   await exec("pulumi", ["stack", "select", stack]);
