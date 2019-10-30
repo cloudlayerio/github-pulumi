@@ -48,13 +48,13 @@ switch (mode) {
 async function run() {
   await downloadPulumi();
 
-  if (stack) {
-    await exec("pulumi", ["stack", "select", stack]);
-  } else {
+  if (!stack) {
     const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
     const branchName = process.env.BRANCH || 'master';
     stack = JSON.parse(ci)[branchName]
   }
+
+  await exec("pulumi", ["stack", "select", stack]);
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
   fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
