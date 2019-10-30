@@ -103,7 +103,7 @@ async function run() {
   if (github.context.payload.pull_request && core.getInput("comment-on-pr")) {
     let commentsUrl = github.context.payload.pull_request
       .comments_url as string;
-    let token = core.getInput("github-token");
+    let token = process.env.GITHUB_TOKEN;
     if (!token) {
       core.setFailed("Can't leave a comment, unknown github-token");
     } else {
