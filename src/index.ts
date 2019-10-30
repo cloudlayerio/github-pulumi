@@ -8,6 +8,7 @@ import * as util from "util";
 import * as path from "path";
 import * as os from "os";
 import * as https from "https";
+import * as request from "request";
 
 const github = require("@actions/github");
 
@@ -153,32 +154,15 @@ async function downloadPulumi() {
   core.addPath(cachedToolpath);
 }
 
-async function getLatestVersion(): Promise<string> {
-  const options = {
-    hostname: "pulumi.com",
-    path: "/latest-version",
-    headers: {
-       
-        Accept: "text/plain",
-        "User-Agent": "github-pulumi"
-      }
-  };
-
-  return new Promise((resolve, reject) => {
-    const req = https.get(options, res => {
-      var body = "";
-      res.on("data", chunk => {
-        body += chunk;
-      });
-      res.on("end", () => {
-        var rsp = body.toString();
-        resolve(rsp);
-      });
-    });
-
-    req.on("error", reject);
-    req.end();
+async function getLatestVersion() : Promise<string> {
+  const req = util.promisify(request.get);
+  
+  const resp = await req({
+    url: "https://pulumi.com/latest-release",
+    followAllRedirects: true
   });
+  
+  return resp.body.toString();
 }
 
 run().catch(core.setFailed);
