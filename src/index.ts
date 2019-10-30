@@ -46,6 +46,7 @@ switch (mode) {
 }
 
 async function run() {
+  await downloadPulumi();
   await exec("pulumi", ["stack", "select", stack]);
 
   if (fs.existsSync("package.json")) {
@@ -123,13 +124,14 @@ function getDownloadURL(version: string): string {
   }
 }
 
-async function downloadPulumi(version: string) {
+async function downloadPulumi() {
+  const version = await getLatestVersion();
+
   let cachedToolpath = toolCache.find("pulumi", version);
   if (!cachedToolpath) {
     let downloadPath;
     try {
-        version || getLatestVersion();
-        downloadPath = await toolCache.downloadTool(getDownloadURL(version));
+      downloadPath = await toolCache.downloadTool(getDownloadURL(version));
     } catch (exception) {
       console.log(exception);
       throw new Error(
@@ -151,13 +153,13 @@ async function downloadPulumi(version: string) {
   core.addPath(cachedToolpath);
 }
 
-async function getLatestVersion() {
+async function getLatestVersion() : Promise<string> {
   const options = {
     hostname: "pulumi.com",
     path: "/latest-version"
   };
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject)  => {
     const req = https.get(options, res => {
       if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
         return reject(new Error(`Status Code: ${res.statusCode}`));

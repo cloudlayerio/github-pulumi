@@ -6177,6 +6177,7 @@ switch (mode) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        yield downloadPulumi();
         yield exec_1.exec("pulumi", ["stack", "select", stack]);
         if (fs.existsSync("package.json")) {
             if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
@@ -6237,13 +6238,13 @@ function getDownloadURL(version) {
             return util.format("https://get.pulumi.com/releases/sdk/pulumi-v%s-windows-x64.tar.gz", version);
     }
 }
-function downloadPulumi(version) {
+function downloadPulumi() {
     return __awaiter(this, void 0, void 0, function* () {
+        const version = yield getLatestVersion();
         let cachedToolpath = toolCache.find("pulumi", version);
         if (!cachedToolpath) {
             let downloadPath;
             try {
-                version || getLatestVersion();
                 downloadPath = yield toolCache.downloadTool(getDownloadURL(version));
             }
             catch (exception) {
