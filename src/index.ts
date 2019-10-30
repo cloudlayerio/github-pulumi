@@ -11,7 +11,7 @@ import { get } from "request-promise";
 
 const github = require("@actions/github");
 
-const stack = core.getInput("stack");
+let stack = core.getInput("stack");
 const args = core.getInput("args", { required: true });
 const root = core.getInput("root");
 if (root) {
@@ -50,6 +50,10 @@ async function run() {
 
   if (stack) {
     await exec("pulumi", ["stack", "select", stack]);
+  } else {
+    const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
+    const branchName = process.env.BRANCH || 'master';
+    stack = JSON.parse(ci)[branchName]
   }
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
