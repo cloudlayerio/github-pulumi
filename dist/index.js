@@ -22837,8 +22837,8 @@ switch (mode) {
             core.info("Skipping Pulumi action altogether...");
             process.exit(0);
         }
-        core.info(JSON.stringify(github.context.payload));
-        branch = github.context.payload.pull_request.base.href;
+        core.info(JSON.stringify(github.context.payload.pull_request));
+        branch = github.context.payload.pull_request.base.ref;
         break;
     default:
         branch = github.context.ref;
