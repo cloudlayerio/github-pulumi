@@ -19,15 +19,14 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - uses: prepor/setup-pulumi@master
-      with:
-        version: 1.3.4
-    - uses: prepor/github-pulumi@master
+    - uses: cloudlayerio/github-pulumi@master
       with:
         stack: dev
         args: up
         root: example
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        comment-on-pr: 1
       env:
         PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 ```
