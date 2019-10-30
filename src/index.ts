@@ -7,8 +7,8 @@ import * as toolCache from "@actions/tool-cache";
 import * as util from "util";
 import * as path from "path";
 import * as os from "os";
-import * as https from "https";
-import * as request from "request";
+import { get } from "request-promise";
+
 
 const github = require("@actions/github");
 
@@ -155,14 +155,10 @@ async function downloadPulumi() {
 }
 
 async function getLatestVersion() : Promise<string> {
-  const req = util.promisify(request.get);
+    
+  const resp = await get("https://pulumi.com/latest-release", { followAllRedirects: true});
   
-  const resp = await req({
-    url: "https://pulumi.com/latest-release",
-    followAllRedirects: true
-  });
-  
-  return resp.body.toString();
+  return resp;
 }
 
 run().catch(core.setFailed);

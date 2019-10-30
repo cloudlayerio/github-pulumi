@@ -13,7 +13,9 @@
     "@actions/io": "^1.0.1",
     "@actions/tool-cache": "^1.1.2",
     "@types/request": "^2.48.3",
+    "@types/request-promise": "^4.1.44",
     "request": "^2.88.0",
+    "request-promise": "^4.2.4",
     "typed-rest-client": "^1.5.0"
   },
   "devDependencies": {
