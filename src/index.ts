@@ -13,9 +13,11 @@ const github = require("@actions/github");
 
 let stack = core.getInput("stack");
 const args = core.getInput("args", { required: true });
-const root = core.getInput("root");
-if (root) {
-  process.chdir(root);
+const root = process.cwd();
+
+const pulumiRoot = core.getInput("root");
+if (pulumiRoot) {
+  process.chdir(pulumiRoot);
 }
 
 const workflow = github.context.workflow;
@@ -47,9 +49,10 @@ switch (mode) {
 
 async function run() {
   await downloadPulumi();
+
   if (!stack) {
     core.info("Stack not defined, using ci.json")
-    const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
+    const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, 'utf8');
     const branchName = github.context.ref.replace(/refs\/heads\//, "") || 'master';
     core.info(`Using branch: ${branchName}`);
     stack = JSON.parse(ci)[branchName]
