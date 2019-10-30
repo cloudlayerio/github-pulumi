@@ -156,7 +156,7 @@ async function downloadPulumi() {
 
 async function getLatestVersion() : Promise<string> {
     
-  const resp = await get("https://pulumi.com/latest-release", { followAllRedirects: true});
+  const resp = await get("https://pulumi.com/latest-version", { followAllRedirects: true});
   
   return resp;
 }
