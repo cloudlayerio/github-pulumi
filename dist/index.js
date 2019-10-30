@@ -22837,6 +22837,7 @@ switch (mode) {
             core.info("Skipping Pulumi action altogether...");
             process.exit(0);
         }
+        core.info(github.context);
         branch = github.context.base_ref;
         break;
     default:
