@@ -22922,7 +22922,7 @@ function downloadPulumi() {
 }
 function getLatestVersion() {
     return __awaiter(this, void 0, void 0, function* () {
-        const resp = yield request_promise_1.get("https://pulumi.com/latest-release", { followAllRedirects: true });
+        const resp = yield request_promise_1.get("https://pulumi.com/latest-version", { followAllRedirects: true });
         return resp;
     });
 }
