@@ -6265,9 +6265,6 @@ function getLatestVersion() {
         };
         return new Promise((resolve, reject) => {
             const req = https.get(options, res => {
-                if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-                    return reject(new Error(`Status Code: ${res.statusCode}`));
-                }
                 var body = "";
                 res.on("data", chunk => {
                     body += chunk;
