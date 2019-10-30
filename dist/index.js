@@ -22837,7 +22837,7 @@ switch (mode) {
             core.info("Skipping Pulumi action altogether...");
             process.exit(0);
         }
-        branch = JSON.parse(fs.readFileSync(github.context.event_path, 'utf8')).pull_request.base.ref;
+        branch = github.context.head_ref;
         break;
     default:
         branch = github.context.ref;
