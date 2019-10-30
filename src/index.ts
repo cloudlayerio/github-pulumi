@@ -50,6 +50,10 @@ async function run() {
   await downloadPulumi();
   await exec("pulumi", ["stack", "select", stack]);
 
+  const gcloudFile = `${process.env.HOME}/gcloud.json`;
+  fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
+  await exec(`gcloud auth activate-service-account --key-file=${gcloudFile}`)
+
   if (fs.existsSync("package.json")) {
     if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
       await exec("yarn install");
