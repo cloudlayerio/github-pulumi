@@ -22829,6 +22829,7 @@ if (workflow) {
     core.exportVariable("PULUMI_CI_PULL_REQUEST_SHA", github.context.sha);
 }
 const mode = core.getInput("mode");
+core.info(`pull_request: ${github.context.payload.pull_request}`);
 switch (mode) {
     case "pr":
         if (!["opened", "edited", "synchronize"].includes(github.context.payload

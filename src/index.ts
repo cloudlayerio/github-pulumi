@@ -33,7 +33,7 @@ if (workflow) {
 }
 
 const mode = core.getInput("mode");
-
+core.info(`pull_request: ${github.context.payload.pull_request}`)
 switch (mode) {
   case "pr":
     if (
