@@ -49,8 +49,10 @@ async function run() {
   await downloadPulumi();
 
   if (!stack) {
+    core.info("Stack not defined, using ci.json")
     const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
     const branchName = github.context.ref.replace(/refs\/heads\//, "") || 'master';
+    core.info(`Using branch: ${branchName}`);
     stack = JSON.parse(ci)[branchName]
   }
 
