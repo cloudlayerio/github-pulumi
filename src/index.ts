@@ -50,7 +50,7 @@ async function run() {
 
   if (!stack) {
     const ci = fs.readFileSync(`${process.env.ROOT}/.pulumi/ci.json`, 'utf8');
-    const branchName = process.env.BRANCH || 'master';
+    const branchName = github.context.ref.replace(/refs\/heads\//, "") || 'master';
     stack = JSON.parse(ci)[branchName]
   }
 
