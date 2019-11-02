@@ -32,8 +32,7 @@ if (workflow) {
   core.exportVariable("PULUMI_CI_PULL_REQUEST_SHA", github.context.sha);
 }
 
-const mode = core.getInput("mode");
-core.info(`pull_request: ${github.context.payload.pull_request}`)
+const mode = github.context.payload.pull_request ? "pr" : "";
 switch (mode) {
   case "pr":
     if (
