@@ -14,7 +14,7 @@ const github = require("@actions/github");
 let stack = core.getInput("stack");
 let branch = "";
 
-const args = core.getInput("args", { required: true });
+const args = core.getInput("args") || "preview";
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
 const downloadOnly = core.getInput("downloadOnly");
