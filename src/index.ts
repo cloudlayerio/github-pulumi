@@ -16,8 +16,9 @@ let branch = "";
 
 const args = core.getInput("args", { required: true });
 const root = process.cwd();
-
 const pulumiRoot = core.getInput("root");
+const downloadOnly = core.getInput("downloadOnly");
+
 if (pulumiRoot) {
   process.chdir(pulumiRoot);
 }
@@ -36,8 +37,9 @@ const mode = github.context.payload.pull_request ? "pr" : "";
 switch (mode) {
   case "pr":
     if (
-      !["opened", "edited", "synchronize"].includes(github.context.payload
-        .action as string)
+      !["opened", "edited", "synchronize"].includes(
+        github.context.payload.action as string
+      )
     ) {
       core.info(
         `PR event ${github.context.payload.action} contains no changes and does not warrant a Pulumi Preview`
@@ -57,12 +59,14 @@ branch = branch.replace(/refs\/heads\//, "");
 async function run() {
   await downloadPulumi();
 
+  if (downloadOnly) return;
+
   if (!stack) {
-    core.info("Stack not defined, using ci.json")
-    const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, 'utf8');
+    core.info("Stack not defined, using ci.json");
+    const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, "utf8");
 
     core.info(`Using branch: ${branch}`);
-    stack = JSON.parse(ci)[branch]
+    stack = JSON.parse(ci)[branch];
   }
 
   await exec("pulumi", ["stack", "select", stack]);
