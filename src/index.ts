@@ -77,7 +77,7 @@ async function run() {
 
   let credentialsKey = "GOOGLE_CREDENTIALS";
   if (branchBasedSecrets) {
-    credentialsKey = credentialsKey + branch.toUpperCase();
+    credentialsKey = `${credentialsKey}_${branch.toUpperCase()}`;
   }
 
   core.info(`Using Google Credentials from: ${credentialsKey}`);

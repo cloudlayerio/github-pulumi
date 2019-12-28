@@ -23272,7 +23272,7 @@ function run() {
         const gcloudFile = `${process.env.HOME}/gcloud.json`;
         let credentialsKey = "GOOGLE_CREDENTIALS";
         if (branchBasedSecrets) {
-            credentialsKey = credentialsKey + branch.toUpperCase();
+            credentialsKey = `${credentialsKey}_${branch.toUpperCase()}`;
         }
         core.info(`Using Google Credentials from: ${credentialsKey}`);
         const googleCredentials = env
