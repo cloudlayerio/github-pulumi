@@ -18,7 +18,7 @@ let branch = "";
 const args = core.getInput("args") || "preview";
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
-const downloadOnly = core.getInput("download-only");
+const downloadAuthOnly = core.getInput("download-auth-only");
 const branchBasedSecrets = core.getInput("branch-based-secrets");
 
 if (pulumiRoot) {
@@ -61,8 +61,6 @@ branch = branch.replace(/refs\/heads\//, "");
 async function run() {
   await downloadPulumi();
 
-  if (downloadOnly) return;
-
   if (!stack) {
     core.info("Stack not defined, using ci.json");
     const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, "utf8");
@@ -101,6 +99,8 @@ async function run() {
     }
   }
 
+  if (downloadAuthOnly) return;
+
   var output = "";
 
   let options = {
@@ -116,6 +116,7 @@ async function run() {
     },
     ignoreReturnCode: true
   };
+
   let cmd = "pulumi " + args;
   core.info(`#### :tropical_drink: ${cmd}`);
   const exitCode = await exec(cmd, undefined, options);

@@ -23229,7 +23229,7 @@ let branch = "";
 const args = core.getInput("args") || "preview";
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
-const downloadOnly = core.getInput("download-only");
+const downloadAuthOnly = core.getInput("download-auth-only");
 const branchBasedSecrets = core.getInput("branch-based-secrets");
 if (pulumiRoot) {
     process.chdir(pulumiRoot);
@@ -23260,8 +23260,6 @@ branch = branch.replace(/refs\/heads\//, "");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         yield downloadPulumi();
-        if (downloadOnly)
-            return;
         if (!stack) {
             core.info("Stack not defined, using ci.json");
             const ci = fs.readFileSync(`${root}/.pulumi/ci.json`, "utf8");
@@ -23292,6 +23290,8 @@ function run() {
                 yield exec_1.exec("npm install");
             }
         }
+        if (downloadAuthOnly)
+            return;
         var output = "";
         let options = {
             listeners: {
