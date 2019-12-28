@@ -23024,7 +23024,7 @@ function run() {
         yield exec_1.exec("pulumi", ["stack", "select", stack]);
         const gcloudFile = `${process.env.HOME}/gcloud.json`;
         fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-        yield exec_1.exec(`echo $(cat ${gcloudFile})`);
+        yield exec_1.exec(`echo "$(cat ${gcloudFile})"`);
         yield exec_1.exec('gcloud auth activate-service-account', [`--key-file=${gcloudFile}`]);
         if (fs.existsSync("package.json")) {
             if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
