@@ -72,9 +72,10 @@ async function run() {
   await exec("pulumi", ["stack", "select", stack]);
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
-  console.log(process.env.GOOGLE_CREDENTIALS);
   fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-  await exec(`gcloud auth activate-service-account --key-file=${gcloudFile}`);
+  await exec(`echo $(cat ${gcloudFile})`);
+  await exec('gcloud auth activate-service-account', [`--key-file=${gcloudFile}`]);
+
 
   if (fs.existsSync("package.json")) {
     if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
