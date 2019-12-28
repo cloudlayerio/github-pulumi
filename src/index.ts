@@ -8,6 +8,7 @@ import * as util from "util";
 import * as path from "path";
 import * as os from "os";
 import { get } from "request-promise";
+import * as env from "env-var";
 
 const github = require("@actions/github");
 
@@ -72,10 +73,16 @@ async function run() {
   await exec("pulumi", ["stack", "select", stack]);
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
-  fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-  await exec(`echo "$(cat ${gcloudFile})"`);
-  await exec('gcloud auth activate-service-account', [`--key-file=${gcloudFile}`]);
+  const googleCredentials = env
+    .get("GOOGLE_CREDENTIALS")
+    .required()
+    .convertFromBase64()
+    .asString();
 
+  fs.writeFileSync(gcloudFile, googleCredentials);
+  await exec("gcloud auth activate-service-account", [
+    `--key-file=${gcloudFile}`
+  ]);
 
   if (fs.existsSync("package.json")) {
     if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {

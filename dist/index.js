@@ -418,100 +418,20 @@ module.exports = osName;
 /* 3 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-var once = __webpack_require__(969);
+"use strict";
 
-var noop = function() {};
 
-var isRequest = function(stream) {
-	return stream.setHeader && typeof stream.abort === 'function';
-};
+const asFloat = __webpack_require__(14)
 
-var isChildProcess = function(stream) {
-	return stream.stdio && Array.isArray(stream.stdio) && stream.stdio.length === 3
-};
+module.exports = function floatPositive (value) {
+  const ret = asFloat(value)
 
-var eos = function(stream, opts, callback) {
-	if (typeof opts === 'function') return eos(stream, null, opts);
-	if (!opts) opts = {};
+  if (ret < 0) {
+    throw new Error('should be a positive float')
+  }
 
-	callback = once(callback || noop);
-
-	var ws = stream._writableState;
-	var rs = stream._readableState;
-	var readable = opts.readable || (opts.readable !== false && stream.readable);
-	var writable = opts.writable || (opts.writable !== false && stream.writable);
-	var cancelled = false;
-
-	var onlegacyfinish = function() {
-		if (!stream.writable) onfinish();
-	};
-
-	var onfinish = function() {
-		writable = false;
-		if (!readable) callback.call(stream);
-	};
-
-	var onend = function() {
-		readable = false;
-		if (!writable) callback.call(stream);
-	};
-
-	var onexit = function(exitCode) {
-		callback.call(stream, exitCode ? new Error('exited with error code: ' + exitCode) : null);
-	};
-
-	var onerror = function(err) {
-		callback.call(stream, err);
-	};
-
-	var onclose = function() {
-		process.nextTick(onclosenexttick);
-	};
-
-	var onclosenexttick = function() {
-		if (cancelled) return;
-		if (readable && !(rs && (rs.ended && !rs.destroyed))) return callback.call(stream, new Error('premature close'));
-		if (writable && !(ws && (ws.ended && !ws.destroyed))) return callback.call(stream, new Error('premature close'));
-	};
-
-	var onrequest = function() {
-		stream.req.on('finish', onfinish);
-	};
-
-	if (isRequest(stream)) {
-		stream.on('complete', onfinish);
-		stream.on('abort', onclose);
-		if (stream.req) onrequest();
-		else stream.on('request', onrequest);
-	} else if (writable && !ws) { // legacy streams
-		stream.on('end', onlegacyfinish);
-		stream.on('close', onlegacyfinish);
-	}
-
-	if (isChildProcess(stream)) stream.on('exit', onexit);
-
-	stream.on('end', onend);
-	stream.on('finish', onfinish);
-	if (opts.error !== false) stream.on('error', onerror);
-	stream.on('close', onclose);
-
-	return function() {
-		cancelled = true;
-		stream.removeListener('complete', onfinish);
-		stream.removeListener('abort', onclose);
-		stream.removeListener('request', onrequest);
-		if (stream.req) stream.req.removeListener('finish', onfinish);
-		stream.removeListener('end', onlegacyfinish);
-		stream.removeListener('close', onlegacyfinish);
-		stream.removeListener('finish', onfinish);
-		stream.removeListener('exit', onexit);
-		stream.removeListener('end', onend);
-		stream.removeListener('error', onerror);
-		stream.removeListener('close', onclose);
-	};
-};
-
-module.exports = eos;
+  return ret
+}
 
 
 /***/ }),
@@ -1298,7 +1218,24 @@ module.exports = {
 
 
 /***/ }),
-/* 14 */,
+/* 14 */
+/***/ (function(module) {
+
+"use strict";
+
+
+module.exports = function asFloat (value) {
+  const n = parseFloat(value)
+
+  if (isNaN(n)) {
+    throw new Error('should be a valid float')
+  }
+
+  return n
+}
+
+
+/***/ }),
 /* 15 */,
 /* 16 */
 /***/ (function(module) {
@@ -1352,48 +1289,18 @@ function authenticationPlugin(octokit, options) {
 
 /***/ }),
 /* 20 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
+/***/ (function(module) {
 
 "use strict";
 
 
-const cp = __webpack_require__(129);
-const parse = __webpack_require__(568);
-const enoent = __webpack_require__(478);
-
-function spawn(command, args, options) {
-    // Parse the arguments
-    const parsed = parse(command, args, options);
-
-    // Spawn the child process
-    const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
-
-    // Hook into child process "exit" event to emit an error if the command
-    // does not exists, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
-    enoent.hookChildProcess(spawned, parsed);
-
-    return spawned;
+module.exports = function asJson (value) {
+  try {
+    return JSON.parse(value)
+  } catch (e) {
+    throw new Error('should be valid (parseable) JSON')
+  }
 }
-
-function spawnSync(command, args, options) {
-    // Parse the arguments
-    const parsed = parse(command, args, options);
-
-    // Spawn the child process
-    const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
-
-    // Analyze if the command does not exist, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
-    result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
-
-    return result;
-}
-
-module.exports = spawn;
-module.exports.spawn = spawn;
-module.exports.sync = spawnSync;
-
-module.exports._parse = parse;
-module.exports._enoent = enoent;
 
 
 /***/ }),
@@ -1728,7 +1635,26 @@ exports.jar = function (store) {
 
 /***/ }),
 /* 36 */,
-/* 37 */,
+/* 37 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asJson = __webpack_require__(20)
+
+module.exports = function asJsonArray (value) {
+  var ret = asJson(value)
+
+  if (!Array.isArray(ret)) {
+    throw new Error('should be a parseable JSON Array')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 38 */,
 /* 39 */
 /***/ (function(module) {
@@ -2092,7 +2018,26 @@ exports.pathMatch = pathMatch;
 
 
 /***/ }),
-/* 55 */,
+/* 55 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asInt = __webpack_require__(299)
+
+module.exports = function intNegative (value) {
+  const ret = asInt(value)
+
+  if (ret > 0) {
+    throw new Error('should be a negative integer')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 56 */,
 /* 57 */,
 /* 58 */,
@@ -2841,14 +2786,14 @@ function write(key, options) {
 
 const path = __webpack_require__(622);
 const childProcess = __webpack_require__(129);
-const crossSpawn = __webpack_require__(20);
+const crossSpawn = __webpack_require__(108);
 const stripEof = __webpack_require__(768);
 const npmRunPath = __webpack_require__(621);
 const isStream = __webpack_require__(207);
 const _getStream = __webpack_require__(145);
 const pFinally = __webpack_require__(427);
 const onExit = __webpack_require__(260);
-const errname = __webpack_require__(745);
+const errname = __webpack_require__(594);
 const stdio = __webpack_require__(168);
 
 const TEN_MEGABYTES = 1000 * 1000 * 10;
@@ -3320,7 +3265,69 @@ function serial(list, iterator, callback)
 
 /***/ }),
 /* 92 */,
-/* 93 */,
+/* 93 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+var fs = __webpack_require__(747)
+var core
+if (process.platform === 'win32' || global.TESTING_WINDOWS) {
+  core = __webpack_require__(818)
+} else {
+  core = __webpack_require__(197)
+}
+
+module.exports = isexe
+isexe.sync = sync
+
+function isexe (path, options, cb) {
+  if (typeof options === 'function') {
+    cb = options
+    options = {}
+  }
+
+  if (!cb) {
+    if (typeof Promise !== 'function') {
+      throw new TypeError('callback not provided')
+    }
+
+    return new Promise(function (resolve, reject) {
+      isexe(path, options || {}, function (er, is) {
+        if (er) {
+          reject(er)
+        } else {
+          resolve(is)
+        }
+      })
+    })
+  }
+
+  core(path, options || {}, function (er, is) {
+    // ignore EACCES because that just means we aren't allowed to run it
+    if (er) {
+      if (er.code === 'EACCES' || options && options.ignoreErrors) {
+        er = null
+        is = false
+      }
+    }
+    cb(er, is)
+  })
+}
+
+function sync (path, options) {
+  // my kingdom for a filtered catch
+  try {
+    return core.sync(path, options || {})
+  } catch (er) {
+    if (options && options.ignoreErrors || er.code === 'EACCES') {
+      return false
+    } else {
+      throw er
+    }
+  }
+}
+
+
+/***/ }),
 /* 94 */,
 /* 95 */,
 /* 96 */,
@@ -3839,7 +3846,52 @@ module.exports = function generate_allOf(it, $keyword, $ruleType) {
 
 
 /***/ }),
-/* 108 */,
+/* 108 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const cp = __webpack_require__(129);
+const parse = __webpack_require__(568);
+const enoent = __webpack_require__(478);
+
+function spawn(command, args, options) {
+    // Parse the arguments
+    const parsed = parse(command, args, options);
+
+    // Spawn the child process
+    const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
+
+    // Hook into child process "exit" event to emit an error if the command
+    // does not exists, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
+    enoent.hookChildProcess(spawned, parsed);
+
+    return spawned;
+}
+
+function spawnSync(command, args, options) {
+    // Parse the arguments
+    const parsed = parse(command, args, options);
+
+    // Spawn the child process
+    const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
+
+    // Analyze if the command does not exist, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
+    result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
+
+    return result;
+}
+
+module.exports = spawn;
+module.exports.spawn = spawn;
+module.exports.sync = spawnSync;
+
+module.exports._parse = parse;
+module.exports._enoent = enoent;
+
+
+/***/ }),
 /* 109 */,
 /* 110 */,
 /* 111 */,
@@ -4000,21 +4052,17 @@ exports.generateBase = generateBase
 /* 116 */
 /***/ (function(module) {
 
-module.exports = class GraphqlError extends Error {
-  constructor (request, response) {
-    const message = response.data.errors[0].message
-    super(message)
+"use strict";
 
-    Object.assign(this, response.data)
-    this.name = 'GraphqlError'
-    this.request = request
 
-    // Maintains proper stack trace (only available on V8)
-    /* istanbul ignore next */
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor)
-    }
+module.exports = function asBoolStrict (value) {
+  const val = value.toLowerCase()
+
+  if ((val !== 'false') && (val !== 'true')) {
+    throw new Error('should be either "true", "false", "TRUE", or "FALSE"')
   }
+
+  return val !== 'false'
 }
 
 
@@ -5288,7 +5336,7 @@ var isWindows = process.platform === 'win32' ||
 
 var path = __webpack_require__(622)
 var COLON = isWindows ? ';' : ':'
-var isexe = __webpack_require__(299)
+var isexe = __webpack_require__(93)
 
 function getNotFoundError (cmd) {
   var er = new Error('not found: ' + cmd)
@@ -5507,7 +5555,27 @@ module.exports.MaxBufferError = MaxBufferError;
 
 
 /***/ }),
-/* 146 */,
+/* 146 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const URL = __webpack_require__(835).URL
+const asString = __webpack_require__(889)
+
+module.exports = function asUrlObject (value) {
+  const ret = asString(value)
+
+  try {
+    return new URL(ret)
+  } catch (e) {
+    throw new Error('should be a valid URL')
+  }
+}
+
+
+/***/ }),
 /* 147 */
 /***/ (function(module) {
 
@@ -5557,7 +5625,7 @@ function state(list, sortMethod)
 module.exports = paginatePlugin;
 
 const iterator = __webpack_require__(8);
-const paginate = __webpack_require__(807);
+const paginate = __webpack_require__(185);
 
 function paginatePlugin(octokit) {
   octokit.paginate = paginate.bind(null, octokit);
@@ -6676,7 +6744,52 @@ module.exports = {"$id":"pageTimings.json#","$schema":"http://json-schema.org/dr
 /* 182 */,
 /* 183 */,
 /* 184 */,
-/* 185 */,
+/* 185 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+module.exports = paginate;
+
+const iterator = __webpack_require__(8);
+
+function paginate(octokit, route, options, mapFn) {
+  if (typeof options === "function") {
+    mapFn = options;
+    options = undefined;
+  }
+  options = octokit.request.endpoint.merge(route, options);
+  return gather(
+    octokit,
+    [],
+    iterator(octokit, options)[Symbol.asyncIterator](),
+    mapFn
+  );
+}
+
+function gather(octokit, results, iterator, mapFn) {
+  return iterator.next().then(result => {
+    if (result.done) {
+      return results;
+    }
+
+    let earlyExit = false;
+    function done() {
+      earlyExit = true;
+    }
+
+    results = results.concat(
+      mapFn ? mapFn(result.value, done) : result.value.data
+    );
+
+    if (earlyExit) {
+      return results;
+    }
+
+    return gather(octokit, results, iterator, mapFn);
+  });
+}
+
+
+/***/ }),
 /* 186 */,
 /* 187 */,
 /* 188 */,
@@ -9161,12 +9274,130 @@ function checkMode (stat, options) {
 /***/ }),
 /* 198 */,
 /* 199 */,
-/* 200 */,
+/* 200 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asFloat = __webpack_require__(14)
+
+module.exports = function floatNegative (value) {
+  const ret = asFloat(value)
+
+  if (ret > 0) {
+    throw new Error('should be a negative float')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 201 */,
 /* 202 */,
 /* 203 */,
 /* 204 */,
-/* 205 */,
+/* 205 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+var once = __webpack_require__(969);
+
+var noop = function() {};
+
+var isRequest = function(stream) {
+	return stream.setHeader && typeof stream.abort === 'function';
+};
+
+var isChildProcess = function(stream) {
+	return stream.stdio && Array.isArray(stream.stdio) && stream.stdio.length === 3
+};
+
+var eos = function(stream, opts, callback) {
+	if (typeof opts === 'function') return eos(stream, null, opts);
+	if (!opts) opts = {};
+
+	callback = once(callback || noop);
+
+	var ws = stream._writableState;
+	var rs = stream._readableState;
+	var readable = opts.readable || (opts.readable !== false && stream.readable);
+	var writable = opts.writable || (opts.writable !== false && stream.writable);
+	var cancelled = false;
+
+	var onlegacyfinish = function() {
+		if (!stream.writable) onfinish();
+	};
+
+	var onfinish = function() {
+		writable = false;
+		if (!readable) callback.call(stream);
+	};
+
+	var onend = function() {
+		readable = false;
+		if (!writable) callback.call(stream);
+	};
+
+	var onexit = function(exitCode) {
+		callback.call(stream, exitCode ? new Error('exited with error code: ' + exitCode) : null);
+	};
+
+	var onerror = function(err) {
+		callback.call(stream, err);
+	};
+
+	var onclose = function() {
+		process.nextTick(onclosenexttick);
+	};
+
+	var onclosenexttick = function() {
+		if (cancelled) return;
+		if (readable && !(rs && (rs.ended && !rs.destroyed))) return callback.call(stream, new Error('premature close'));
+		if (writable && !(ws && (ws.ended && !ws.destroyed))) return callback.call(stream, new Error('premature close'));
+	};
+
+	var onrequest = function() {
+		stream.req.on('finish', onfinish);
+	};
+
+	if (isRequest(stream)) {
+		stream.on('complete', onfinish);
+		stream.on('abort', onclose);
+		if (stream.req) onrequest();
+		else stream.on('request', onrequest);
+	} else if (writable && !ws) { // legacy streams
+		stream.on('end', onlegacyfinish);
+		stream.on('close', onlegacyfinish);
+	}
+
+	if (isChildProcess(stream)) stream.on('exit', onexit);
+
+	stream.on('end', onend);
+	stream.on('finish', onfinish);
+	if (opts.error !== false) stream.on('error', onerror);
+	stream.on('close', onclose);
+
+	return function() {
+		cancelled = true;
+		stream.removeListener('complete', onfinish);
+		stream.removeListener('abort', onclose);
+		stream.removeListener('request', onrequest);
+		if (stream.req) stream.req.removeListener('finish', onfinish);
+		stream.removeListener('end', onlegacyfinish);
+		stream.removeListener('close', onlegacyfinish);
+		stream.removeListener('finish', onfinish);
+		stream.removeListener('exit', onexit);
+		stream.removeListener('end', onend);
+		stream.removeListener('error', onerror);
+		stream.removeListener('close', onclose);
+	};
+};
+
+module.exports = eos;
+
+
+/***/ }),
 /* 206 */,
 /* 207 */
 /***/ (function(module) {
@@ -17119,64 +17350,19 @@ module.exports = function(fn) {
 
 /***/ }),
 /* 299 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
+/***/ (function(module) {
 
-var fs = __webpack_require__(747)
-var core
-if (process.platform === 'win32' || global.TESTING_WINDOWS) {
-  core = __webpack_require__(818)
-} else {
-  core = __webpack_require__(197)
-}
+"use strict";
 
-module.exports = isexe
-isexe.sync = sync
 
-function isexe (path, options, cb) {
-  if (typeof options === 'function') {
-    cb = options
-    options = {}
+module.exports = function asInt (value) {
+  const n = parseInt(value, 10)
+
+  if (isNaN(n) || value.toString().indexOf('.') !== -1) {
+    throw new Error('should be a valid integer')
   }
 
-  if (!cb) {
-    if (typeof Promise !== 'function') {
-      throw new TypeError('callback not provided')
-    }
-
-    return new Promise(function (resolve, reject) {
-      isexe(path, options || {}, function (er, is) {
-        if (er) {
-          reject(er)
-        } else {
-          resolve(is)
-        }
-      })
-    })
-  }
-
-  core(path, options || {}, function (er, is) {
-    // ignore EACCES because that just means we aren't allowed to run it
-    if (er) {
-      if (er.code === 'EACCES' || options && options.ignoreErrors) {
-        er = null
-        is = false
-      }
-    }
-    cb(er, is)
-  })
-}
-
-function sync (path, options) {
-  // my kingdom for a filtered catch
-  try {
-    return core.sync(path, options || {})
-  } catch (er) {
-    if (options && options.ignoreErrors || er.code === 'EACCES') {
-      return false
-    } else {
-      throw er
-    }
-  }
+  return n
 }
 
 
@@ -17438,7 +17624,26 @@ function octokitRestNormalizeGitReferenceResponses(octokit) {
 /***/ }),
 /* 310 */,
 /* 311 */,
-/* 312 */,
+/* 312 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asString = __webpack_require__(889)
+
+module.exports = function asArray (value, delimiter) {
+  delimiter = delimiter || ','
+
+  if (!value.length) {
+    return []
+  } else {
+    return asString(value).split(delimiter).filter(Boolean)
+  }
+}
+
+
+/***/ }),
 /* 313 */,
 /* 314 */
 /***/ (function(module) {
@@ -19428,7 +19633,28 @@ module.exports = function generate_properties(it, $keyword, $ruleType) {
 /* 344 */,
 /* 345 */,
 /* 346 */,
-/* 347 */,
+/* 347 */
+/***/ (function(module) {
+
+module.exports = class GraphqlError extends Error {
+  constructor (request, response) {
+    const message = response.data.errors[0].message
+    super(message)
+
+    Object.assign(this, response.data)
+    this.name = 'GraphqlError'
+    this.request = request
+
+    // Maintains proper stack trace (only available on V8)
+    /* istanbul ignore next */
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor)
+    }
+  }
+}
+
+
+/***/ }),
 /* 348 */
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -20512,7 +20738,26 @@ Signer.prototype.sign = function () {
 /***/ }),
 /* 364 */,
 /* 365 */,
-/* 366 */,
+/* 366 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asIntPositive = __webpack_require__(579)
+
+module.exports = function asPortNumber (value) {
+  var ret = asIntPositive(value)
+
+  if (ret > 65535) {
+    throw new Error('cannot assign a port number greater than 65535')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 367 */,
 /* 368 */
 /***/ (function(module) {
@@ -22977,6 +23222,7 @@ const util = __importStar(__webpack_require__(669));
 const path = __importStar(__webpack_require__(622));
 const os = __importStar(__webpack_require__(87));
 const request_promise_1 = __webpack_require__(99);
+const env = __importStar(__webpack_require__(766));
 const github = __webpack_require__(861);
 let stack = core.getInput("stack");
 let branch = "";
@@ -23023,9 +23269,15 @@ function run() {
         }
         yield exec_1.exec("pulumi", ["stack", "select", stack]);
         const gcloudFile = `${process.env.HOME}/gcloud.json`;
-        fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-        yield exec_1.exec(`echo "$(cat ${gcloudFile})"`);
-        yield exec_1.exec('gcloud auth activate-service-account', [`--key-file=${gcloudFile}`]);
+        const googleCredentials = env
+            .get("GOOGLE_CREDENTIALS")
+            .required()
+            .convertFromBase64()
+            .asString();
+        fs.writeFileSync(gcloudFile, googleCredentials);
+        yield exec_1.exec("gcloud auth activate-service-account", [
+            `--key-file=${gcloudFile}`
+        ]);
         if (fs.existsSync("package.json")) {
             if (fs.existsSync("yarn.lock") || core.getInput("yarn")) {
                 yield exec_1.exec("yarn install");
@@ -23647,7 +23899,7 @@ module.exports = function (str) {
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 var once = __webpack_require__(969)
-var eos = __webpack_require__(3)
+var eos = __webpack_require__(205)
 var fs = __webpack_require__(747) // we only need fs to get the ReadStream and WriteStream prototypes
 
 var noop = function () {}
@@ -32453,7 +32705,26 @@ function getPageLinks (link) {
 module.exports = {"$schema":"http://json-schema.org/draft-07/schema#","$id":"https://raw.githubusercontent.com/epoberezkin/ajv/master/lib/refs/data.json#","description":"Meta-schema for $data reference (JSON Schema extension proposal)","type":"object","required":["$data"],"properties":{"$data":{"type":"string","anyOf":[{"format":"relative-json-pointer"},{"format":"json-pointer"}]}},"additionalProperties":false};
 
 /***/ }),
-/* 579 */,
+/* 579 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asInt = __webpack_require__(299)
+
+module.exports = function intPositive (value) {
+  const ret = asInt(value)
+
+  if (ret < 0) {
+    throw new Error('should be a positive integer')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 580 */,
 /* 581 */
 /***/ (function(module) {
@@ -32719,11 +32990,69 @@ function octokitRestApiEndpoints(octokit) {
 /* 587 */,
 /* 588 */,
 /* 589 */,
-/* 590 */,
+/* 590 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const urlObject = __webpack_require__(146)
+
+module.exports = function (value) {
+  return urlObject(value).toString()
+}
+
+
+/***/ }),
 /* 591 */,
 /* 592 */,
 /* 593 */,
-/* 594 */,
+/* 594 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+// Older verions of Node.js might not have `util.getSystemErrorName()`.
+// In that case, fall back to a deprecated internal.
+const util = __webpack_require__(669);
+
+let uv;
+
+if (typeof util.getSystemErrorName === 'function') {
+	module.exports = util.getSystemErrorName;
+} else {
+	try {
+		uv = process.binding('uv');
+
+		if (typeof uv.errname !== 'function') {
+			throw new TypeError('uv.errname is not a function');
+		}
+	} catch (err) {
+		console.error('execa/lib/errname: unable to establish process.binding(\'uv\')', err);
+		uv = null;
+	}
+
+	module.exports = code => errname(uv, code);
+}
+
+// Used for testing the fallback behavior
+module.exports.__test__ = errname;
+
+function errname(uv, code) {
+	if (uv) {
+		return uv.errname(code);
+	}
+
+	if (!(code < 0)) {
+		throw new Error('err >= 0');
+	}
+
+	return `Unknown system error ${code}`;
+}
+
+
+
+/***/ }),
 /* 595 */,
 /* 596 */,
 /* 597 */,
@@ -33233,7 +33562,31 @@ Promise.filter = function (promises, fn, options) {
 /***/ }),
 /* 611 */,
 /* 612 */,
-/* 613 */,
+/* 613 */
+/***/ (function(module) {
+
+"use strict";
+
+
+module.exports = function asBool (value) {
+  const val = value.toLowerCase()
+
+  const allowedValues = [
+    'false',
+    '0',
+    'true',
+    '1'
+  ]
+
+  if (allowedValues.indexOf(val) === -1) {
+    throw new Error('should be either "true", "false", "TRUE", "FALSE", 1, or 0')
+  }
+
+  return !(((val === '0') || (val === 'false')))
+}
+
+
+/***/ }),
 /* 614 */
 /***/ (function(module) {
 
@@ -39576,44 +39929,134 @@ module.exports = {"$id":"page.json#","$schema":"http://json-schema.org/draft-06/
 
 "use strict";
 
-// Older verions of Node.js might not have `util.getSystemErrorName()`.
-// In that case, fall back to a deprecated internal.
-const util = __webpack_require__(669);
 
-let uv;
+const EnvVarError = __webpack_require__(807)
+const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
 
-if (typeof util.getSystemErrorName === 'function') {
-	module.exports = util.getSystemErrorName;
-} else {
-	try {
-		uv = process.binding('uv');
+/**
+ * Returns an Object that contains functions to read and specify the format of
+ * the variable you wish to have returned
+ * @param  {Object} container Encapsulated container (e.g., `process.env`).
+ * @param  {String} varName Name of the requested property from `container`.
+ * @param  {*} defValue Default value to return if `varName` is invalid.
+ * @param  {Object} extraAccessors Extra accessors to install.
+ * @return {Object}
+ */
+module.exports = function getVariableAccessors (container, varName, defValue, extraAccessors) {
+  let isBase64 = false
 
-		if (typeof uv.errname !== 'function') {
-			throw new TypeError('uv.errname is not a function');
-		}
-	} catch (err) {
-		console.error('execa/lib/errname: unable to establish process.binding(\'uv\')', err);
-		uv = null;
-	}
+  /**
+   * Throw an error with a consistent type/format.
+   * @param {String} value
+   */
+  function raiseError (value, msg) {
+    throw new EnvVarError(`"${varName}" ${msg}, but was "${value}"`)
+  }
 
-	module.exports = code => errname(uv, code);
+  /**
+   * Returns an accessor wrapped by error handling and args passing logic
+   * @param {String} accessorPath
+   */
+  function generateAccessor (accessor) {
+    return function () {
+      let value = container[varName]
+
+      if (typeof value === 'undefined') {
+        if (typeof defValue === 'undefined') {
+          // Need to return since no value is available. If a value needed to
+          // be available required() should be called, or a default passed
+          return
+        }
+
+        // Assign the default as the value since process.env does not contain
+        // the desired variable
+        value = defValue
+      }
+
+      if (isBase64) {
+        if (!value.match(base64Regex)) {
+          raiseError(value, 'should be a valid base64 string if using convertFromBase64')
+        }
+
+        value = Buffer.from(value, 'base64').toString()
+      }
+
+      const args = [value].concat(Array.prototype.slice.call(arguments))
+
+      try {
+        return accessor.apply(
+          accessor,
+          args
+        )
+      } catch (error) {
+        raiseError(value, error.message)
+      }
+    }
+  }
+
+  // Cannot dynamically load accessors if we want to support browsers
+  const accessors = {
+    asArray: generateAccessor(__webpack_require__(312)),
+
+    asBoolStrict: generateAccessor(__webpack_require__(116)),
+    asBool: generateAccessor(__webpack_require__(613)),
+
+    asPortNumber: generateAccessor(__webpack_require__(366)),
+    asEnum: generateAccessor(__webpack_require__(833)),
+
+    asFloatNegative: generateAccessor(__webpack_require__(200)),
+    asFloatPositive: generateAccessor(__webpack_require__(3)),
+    asFloat: generateAccessor(__webpack_require__(14)),
+
+    asIntNegative: generateAccessor(__webpack_require__(55)),
+    asIntPositive: generateAccessor(__webpack_require__(579)),
+    asInt: generateAccessor(__webpack_require__(299)),
+
+    asJsonArray: generateAccessor(__webpack_require__(37)),
+    asJsonObject: generateAccessor(__webpack_require__(785)),
+    asJson: generateAccessor(__webpack_require__(20)),
+
+    asString: generateAccessor(__webpack_require__(889)),
+
+    asUrlObject: generateAccessor(__webpack_require__(146)),
+    asUrlString: generateAccessor(__webpack_require__(590)),
+
+    convertFromBase64: function () {
+      isBase64 = true
+
+      return accessors
+    },
+
+    /**
+     * Ensures a variable is set in the given environment container. Throws an
+     * EnvVarError if the variable is not set or a default is not provided
+     * @param {Boolean} isRequired
+     */
+    required: function (isRequired) {
+      if (isRequired === false) {
+        return accessors
+      }
+
+      if (typeof container[varName] === 'undefined' && typeof defValue === 'undefined') {
+        throw new EnvVarError(`"${varName}" is a required variable, but it was not set`)
+      }
+
+      const value = typeof container[varName] === 'undefined' ? defValue : container[varName]
+      if (value.trim().length === 0) {
+        throw new EnvVarError(`"${varName}" is a required variable, but its value was empty`)
+      }
+
+      return accessors
+    }
+  }
+
+  // Attach extra accessors, if provided.
+  Object.entries(extraAccessors).forEach(([name, accessor]) => {
+    accessors[name] = generateAccessor(accessor)
+  })
+
+  return accessors
 }
-
-// Used for testing the fallback behavior
-module.exports.__test__ = errname;
-
-function errname(uv, code) {
-	if (uv) {
-		return uv.errname(code);
-	}
-
-	if (!(code < 0)) {
-		throw new Error('err >= 0');
-	}
-
-	return `Unknown system error ${code}`;
-}
-
 
 
 /***/ }),
@@ -40549,7 +40992,52 @@ function getUserAgentNode () {
 module.exports = require("process");
 
 /***/ }),
-/* 766 */,
+/* 766 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const variable = __webpack_require__(745)
+
+/**
+ * Returns an "env-var" instance that reads from the given container of values.
+ * By default, we export an instance that reads from process.env
+ * @param  {Object} container target container to read values from
+ * @param  {Object} extraAccessors additional accessors to attach to the
+ * resulting object
+ * @return {Object} a new module instance
+ */
+const from = (container, extraAccessors) => {
+  return {
+    from: from,
+
+    /**
+     * This is the Error class used to generate exceptions. Can be used to identify
+     * exceptions and handle them appropriately.
+     */
+    EnvVarError: __webpack_require__(807),
+
+    /**
+     * Returns a variable instance with helper functions, or process.env
+     * @param  {String} variableName Name of the environment variable requested
+     * @param  {String} defaultValue Optional default to use as the value
+     * @return {Object}
+     */
+    get: (variableName, defaultValue) => {
+      if (!variableName) {
+        return container
+      }
+
+      return variable(container, variableName, defaultValue, extraAccessors || {})
+    }
+  }
+}
+
+module.exports = from(process.env)
+
+
+/***/ }),
 /* 767 */,
 /* 768 */
 /***/ (function(module) {
@@ -41120,14 +41608,33 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise,
 /* 782 */,
 /* 783 */,
 /* 784 */,
-/* 785 */,
+/* 785 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asJson = __webpack_require__(20)
+
+module.exports = function asJsonArray (value) {
+  var ret = asJson(value)
+
+  if (Array.isArray(ret)) {
+    throw new Error('should be a parseable JSON Object')
+  }
+
+  return ret
+}
+
+
+/***/ }),
 /* 786 */,
 /* 787 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 module.exports = graphql
 
-const GraphqlError = __webpack_require__(116)
+const GraphqlError = __webpack_require__(347)
 
 const NON_VARIABLE_OPTIONS = ['method', 'baseUrl', 'url', 'headers', 'request', 'query']
 
@@ -41761,46 +42268,24 @@ function vars(arr, statement) {
 /* 807 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-module.exports = paginate;
+"use strict";
 
-const iterator = __webpack_require__(8);
 
-function paginate(octokit, route, options, mapFn) {
-  if (typeof options === "function") {
-    mapFn = options;
-    options = undefined;
-  }
-  options = octokit.request.endpoint.merge(route, options);
-  return gather(
-    octokit,
-    [],
-    iterator(octokit, options)[Symbol.asyncIterator](),
-    mapFn
-  );
-}
+const inherits = __webpack_require__(669).inherits
 
-function gather(octokit, results, iterator, mapFn) {
-  return iterator.next().then(result => {
-    if (result.done) {
-      return results;
-    }
+/**
+ * Creates a custom error class that can be used to identify errors generated
+ * by the module
+ */
+function EnvVarError (message) {
+  Error.captureStackTrace(this, this.constructor)
+  this.name = 'EnvVarError'
+  this.message = `env-var: ${message}`
+};
 
-    let earlyExit = false;
-    function done() {
-      earlyExit = true;
-    }
+inherits(EnvVarError, Error)
 
-    results = results.concat(
-      mapFn ? mapFn(result.value, done) : result.value.data
-    );
-
-    if (earlyExit) {
-      return results;
-    }
-
-    return gather(octokit, results, iterator, mapFn);
-  });
-}
+module.exports = EnvVarError
 
 
 /***/ }),
@@ -42875,7 +43360,26 @@ Promise.prototype.race = function () {
 
 
 /***/ }),
-/* 833 */,
+/* 833 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+const asString = __webpack_require__(889)
+
+module.exports = function asEnum (value, validValues) {
+  const valueString = asString(value)
+
+  if (validValues.indexOf(valueString) < 0) {
+    throw new Error(`should be one of [${validValues.join(', ')}]`)
+  }
+
+  return valueString
+}
+
+
+/***/ }),
 /* 834 */,
 /* 835 */
 /***/ (function(module) {
@@ -49217,7 +49721,18 @@ exports.ECKey = function(curve, key, isPublic)
 /***/ }),
 /* 887 */,
 /* 888 */,
-/* 889 */,
+/* 889 */
+/***/ (function(module) {
+
+"use strict";
+
+
+module.exports = function (value) {
+  return value
+}
+
+
+/***/ }),
 /* 890 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
