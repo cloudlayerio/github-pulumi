@@ -23274,6 +23274,7 @@ function run() {
         if (branchBasedSecrets) {
             credentialsKey = credentialsKey + branch.toUpperCase();
         }
+        core.info(`Using Google Credentials from: ${credentialsKey}`);
         const googleCredentials = env
             .get(credentialsKey)
             .required()
