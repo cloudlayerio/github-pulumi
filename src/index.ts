@@ -73,7 +73,7 @@ async function run() {
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
   fs.writeFileSync(gcloudFile, process.env.GOOGLE_CREDENTIALS);
-  await exec(`echo $(cat ${gcloudFile})`);
+  await exec(`echo "$(cat ${gcloudFile})"`);
   await exec('gcloud auth activate-service-account', [`--key-file=${gcloudFile}`]);
 
 
