@@ -18,7 +18,8 @@ let branch = "";
 const args = core.getInput("args") || "preview";
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
-const downloadOnly = core.getInput("downloadOnly");
+const downloadOnly = core.getInput("download-only");
+const branchBasedSecrets = core.getInput("branch-based-secrets");
 
 if (pulumiRoot) {
   process.chdir(pulumiRoot);
@@ -73,8 +74,14 @@ async function run() {
   await exec("pulumi", ["stack", "select", stack]);
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
+
+  let credentialsKey = "GOOGLE_CREDENTIALS";
+  if (branchBasedSecrets) {
+    credentialsKey = credentialsKey + branch.toUpperCase();
+  }
+
   const googleCredentials = env
-    .get("GOOGLE_CREDENTIALS")
+    .get(credentialsKey)
     .required()
     .convertFromBase64()
     .asString();
