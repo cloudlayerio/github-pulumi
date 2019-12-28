@@ -19,7 +19,6 @@ const args = core.getInput("args") || "preview";
 const root = process.cwd();
 const pulumiRoot = core.getInput("root");
 const downloadAuthOnly = core.getInput("download-auth-only");
-const branchBasedSecrets = core.getInput("branch-based-secrets");
 
 if (pulumiRoot) {
   process.chdir(pulumiRoot);
@@ -73,11 +72,7 @@ async function run() {
 
   const gcloudFile = `${process.env.HOME}/gcloud.json`;
 
-  let credentialsKey = "GOOGLE_CREDENTIALS";
-  if (branchBasedSecrets) {
-    credentialsKey = `${credentialsKey}_${branch.toUpperCase()}`;
-  }
-
+  const credentialsKey = "GOOGLE_CREDENTIALS";
   core.info(`Using Google Credentials from: ${credentialsKey}`);
 
   const googleCredentials = env
